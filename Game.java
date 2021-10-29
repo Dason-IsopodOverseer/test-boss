@@ -1,10 +1,4 @@
-/* // ok so for some reason, the animation for when luke is attacked works properly if arrow keys are 
- * pressed, but not otherwise. not sure if my computer is just being annoying, but lets look into this.
- * i dont know what the cause would be.
- * 
- * also, for some reason, luke's y is being set to really high values. i have no idea why this is happening
- * either.
- */
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,23 +13,29 @@ public class Game extends Canvas {
     private boolean rightPressed = false; // true if right arrow key currently pressed
     protected boolean upPressed = false; // true if up arrow key currently pressed
     private boolean attackPressed = false; // true if attack key (spacebar) currently pressed
+    private boolean forcePressed = false; // true if force key (a) currently pressed
     
     public final int GAMEWIDTH = 1056; // width in px of game window
     public final int GAMEHEIGHT = 480; // height in px of game window
     private int levelHeight = 1920; // height of the first "level" of the game
     
     private double amountScrolled = 0; // constantly increases to make the platforms rise
-    private double scrollSpeed = 0; // speed that amountScrolled increases at
+    private double scrollSpeed = -2; // speed that amountScrolled increases at
     private boolean superScroll = false; // when luke is in the bottom 2/10 of the screen, scroll faster
     private boolean scrolling = true;
     
     private int lvl = 1;
-    private int attackInterval = 700;
-    private int attackDuration = 300;
-    private int pauseDuration = 300;
+    private final int ATTACKINTERVAL = 700;
+    private final int ATTACKDURATION = 300;
+    private final int PAUSEDURATION = 300;
+    private int forceAttackInterval = 2000;
     
     public ArrayList<Entity> entities = new ArrayList(); // list of entities
     public ArrayList<Entity> deadEnemies = new ArrayList();
+    private Sprite heart = (SpriteStore.get()).getSprite("sprites/heart.png");
+    private Sprite lostHeart = (SpriteStore.get()).getSprite("sprites/lostheart.png");
+    private Sprite[] hearts = {heart, heart, heart};
+    
     private double moveSpeed = 300;
     public Entity luke;
     public Entity enemy;
@@ -43,16 +43,18 @@ public class Game extends Canvas {
     private boolean inFreefall = true; // true when luke is falling and moving down
     private int jumpTarget;
     private boolean jumping = false; // true when luke is "falling", but moving up
-    //private boolean facingRight = true;
-    public int health = 30;
+    private boolean facingRight = true;
+    public int health = 3;
     public int deathToll = 0;
     private long lastAttack = 0;
-    //public boolean pauseMovement = false;
+    private long lastForceAttack = 0;
     private long lastPause = 0;
     
     private boolean gameStarted = false;
     
     private TileMap map = new TileMap("level1.txt", this);
+    
+    long lastLoopTime = System.currentTimeMillis();
     
     /*
 	 * Construct our game and set it running.
@@ -99,7 +101,7 @@ public class Game extends Canvas {
 		createBufferStrategy(2);
 		strategy = getBufferStrategy();
 
-		luke = new LukeEntity(this, "luke", 100, 0);
+		luke = new LukeEntity(this, "luke", 10, 0);
 		entities.add(luke);
 		for (int i = 0; i < entities.size(); i++) {
 			entities.get(i).setMap();
@@ -109,6 +111,11 @@ public class Game extends Canvas {
 		introScreenLoop();
 		gameLoop();
     } // constructor
+
+	private Sprite getSprite(String string) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	public TileMap getTileMap() {
 		return this.map;
@@ -139,7 +146,7 @@ public class Game extends Canvas {
 	
 	public void gameLoop() {
 		
-		long lastLoopTime = System.currentTimeMillis();
+		lastLoopTime = System.currentTimeMillis();
 
         // keep loop running until game ends
         while (true) {
@@ -148,6 +155,7 @@ public class Game extends Canvas {
             // entities movement
             long delta = System.currentTimeMillis() - lastLoopTime;
             lastLoopTime = System.currentTimeMillis();
+            System.out.println(delta);
             
             // get graphics context for the accelerated surface and make it black
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
@@ -183,17 +191,15 @@ public class Game extends Canvas {
 		            	amountScrolled += (scrollSpeed * delta) / 1000;
 		            } // else
 		            
-		            if ((levelHeight - GAMEHEIGHT) + amountScrolled < 5) {
+		           
+		            if ((levelHeight - GAMEHEIGHT) + amountScrolled < 1) {
 		        		scrolling = false;
+		        		
 		        	}
 	            }
 	        	
 	            
-            } // while
-	        
-            if ((luke.getY() + amountScrolled) < 0 && luke.isTileBelow()) {
-            	lose();
-            } // if
+            } // if movement paused	        
             
             
             Sprite tile = null;
@@ -222,13 +228,15 @@ public class Game extends Canvas {
             	entity.draw(g, amountScrolled);
             }
             
-            // collision detection
             for (int i = 0; i < entities.size(); i++) {
     	        if (entities.get(i).collidesWith(luke) && entities.get(i) != luke) {
     	        	if (luke.attacking) {
     	        		deadEnemies.add(entities.get(i));
+    	 				forceAttackInterval += 250;
     	        	}
     	        	else {
+    	        		health--;
+    	        		hearts[health] = lostHeart;
     	        		luke.collidedWith(entities.get(i));
     	        		lastPause = System.currentTimeMillis();
     	        		luke.pauseMovement = true;
@@ -237,7 +245,7 @@ public class Game extends Canvas {
     	        }
     	    }
             
-            if (System.currentTimeMillis() - lastPause > pauseDuration) {
+            if (System.currentTimeMillis() - lastPause > PAUSEDURATION) {
     			luke.pauseMovement = false;
     		}
             
@@ -253,6 +261,26 @@ public class Game extends Canvas {
             } else { 
 	        	inFreefall = true;
             } // else
+            
+            // draw force bar
+            if (System.currentTimeMillis() - lastForceAttack > forceAttackInterval) {
+            	g.setColor(new Color(20,170,255));
+            	g.fillRect(GAMEWIDTH - forceAttackInterval / 30, 0, forceAttackInterval / 30, 40);
+            } else {
+            	g.fillRect(GAMEWIDTH - forceAttackInterval / 30, 0, forceAttackInterval / 30, 40);
+            	if (deadEnemies.isEmpty()) {
+            		g.setColor(new Color(20,170,255));
+            	} else {
+            		g.setColor(new Color(150,0,0));
+            	} // else
+            	
+            	g.fillRect(GAMEWIDTH - forceAttackInterval / 30, 0, (int) (System.currentTimeMillis() - lastForceAttack) / 30, 40);
+            } // else
+            
+            // draw health bar
+            for (int i = 1; i <= 3; i++) {
+            	hearts[i - 1].draw(g, GAMEWIDTH - (40 * i), 60);
+            }
            
             // clear graphics and flip buffer
             g.dispose();
@@ -271,32 +299,53 @@ public class Game extends Canvas {
  			} else if (leftPressed) {
  				luke.setHorizontalMovement(-moveSpeed);
  				//facingRight = false;
- 			} if (upPressed && luke.isTileBelow()) {
+ 			} if (upPressed && luke.isTileBelow(delta)) {
  				luke.setVerticalMovement(-600);
  				jumpTarget = luke.getY() - 200;
  				jumping = true;
  				inFreefall = false;
  			} // if
  			
- 			if (attackPressed && (System.currentTimeMillis() - lastAttack > attackInterval)) {
+ 			// check if luke can attack
+ 			if (attackPressed && (System.currentTimeMillis() - lastAttack > ATTACKINTERVAL)) {
  				lastAttack = System.currentTimeMillis();
  				luke.attacking = true;
  			}
- 			
- 			if (System.currentTimeMillis() - lastAttack > attackDuration) {
+ 			// stop attack once attack duration is over
+ 			if (System.currentTimeMillis() - lastAttack > ATTACKDURATION) {
  				luke.attacking = false; 
  			}
+ 			
+ 			// check if luke can use the force
+ 			if (forcePressed && (System.currentTimeMillis() - lastForceAttack > forceAttackInterval)) {
+ 				lastForceAttack = System.currentTimeMillis();
+ 				
+ 				// push away all enemies in front of luke
+ 				for (int i = 0; i < entities.size(); i++) {
+ 					Entity e = entities.get(i);
+ 					if (e.getY() < luke.getY() + 30 && e.getY() > luke.getY() - 30) {
+ 						if (facingRight && e.getX() > luke.getX()) {
+ 							e.pushBackTo(e.getX() + 100, true);
+ 						} else if (!facingRight && e.getX() < luke.getX()) {
+ 							e.pushBackTo(e.getX() - 100, false);
+ 						} // else if
+ 					} // if
+ 				} // for
+ 			} // if
  			
  			// see if luke is dead
  			if (health == 0) {
  				lose();
  			}
+ 			if ((luke.getY() + amountScrolled) < 0 && luke.isTileBelow(delta)) {
+            	lose();
+            } // if
  			
- 			// if luke is at the bottom region of the level
+ 			// if luke is at the bottom region of the level, detect tiles below
  			if (luke.y > (levelHeight - 200)) {
 	 			if (((LukeEntity) luke).getTileDirectlyBelow() == 'N') {
 	 				lvl++;
-	 				goToNextLevel(lastLoopTime);
+	 				goToNextLevel();
 	 				((LukeEntity) luke).setMap(map);
 	 				scrolling = true;
 	 			}
@@ -305,9 +354,12 @@ public class Game extends Canvas {
          } // while
 	} // gameLoop
 	
-	private void goToNextLevel(long lastLoopTime) {
+	private void goToNextLevel() {
 			entities.clear();
 		    health = 3;
+		    hearts[0] = heart;
+		    hearts[1] = heart;
+		    hearts[2] = heart;
 			
             // get graphics context for the accelerated surface and make it black
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
@@ -317,17 +369,26 @@ public class Game extends Canvas {
             loadLvlMap();
             entities.add(luke);
             
+            for (int i = 1; i <= 3; i++) {
+            	hearts[i - 1].draw(g, GAMEWIDTH - (40 * i), 60);
+            }
+            
             amountScrolled = 0;
             superScroll = false;
             
-            luke.x = 0;
-            luke.y = 0;
+            luke.x = 10;
+            luke.y = 10;
             
-            //attacking = false;
+            luke.attacking = false;
+            luke.pauseMovement = false;
             
             //clear graphics and flip buffer
             g.dispose();
             strategy.show();
+            
+            lastLoopTime = System.currentTimeMillis();
+            
+            
 		//} // while
 	} // goToNextLevel
 	
@@ -367,8 +428,8 @@ public class Game extends Canvas {
 		                
         // reset to start of level
 
-        goToNextLevel(System.currentTimeMillis());
-        gameStarted = true;
+        goToNextLevel();
+        //gameStarted = true;
         
 	} // lose
 	
@@ -419,8 +480,11 @@ public class Game extends Canvas {
 	         }
 	         if (e.getKeyChar() == KeyEvent.VK_ENTER) {
 	        	 gameStarted = true;
-	        	 luke.x = 0;
-	        	 luke.y = 0;
+	        	 luke.x = 10;
+	        	 luke.y = 10;
+	         }
+	         if (e.getKeyCode() == KeyEvent.VK_X) {
+	        	 forcePressed = true;
 	         }
         } // keyPressed
 
@@ -441,6 +505,9 @@ public class Game extends Canvas {
 	         
 	         if(e.getKeyCode() == KeyEvent.VK_SPACE) {
 	        	 attackPressed = false;
+	         }
+	         if (e.getKeyCode() == KeyEvent.VK_X) {
+	        	 forcePressed = false;
 	         }
 		} // keyReleased
 

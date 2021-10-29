@@ -68,7 +68,7 @@ public class TileMap {
 				} else if (ch == 'w') {
 					tiles[x][y] = null;
 					game.entities.add(new KlingonEntity(game, "warrior", (x * 96), (y * 96 + 75)));
-				} else if (ch == 'd') {
+				} else if (ch == 'm') {
 					tiles[x][y] = null;
 					game.entities.add(new KlingonEntity(game, "master", (x * 96), (y * 96 + 75)));
 				} else if (ch == 'b') {

@@ -12,7 +12,6 @@
     // any classes in the same package, and any subclasses
     // "private" - this class only
     // "public" - any class can see it
-    
     protected double x;   // current x location
     protected double y;   // current y location
     protected Sprite sprite; // this entity's sprite
@@ -24,6 +23,9 @@
     protected int bottom;
     protected TileMap map;
     protected Game game;
+    protected boolean beingPushed = false;
+    protected int pushTarget = 0;
+    protected boolean pushedRight = false;
     
     public boolean pauseMovement = false;
     public boolean attacking = false;
@@ -35,14 +37,13 @@
 	private String[] jump = new String[3]; // stores an array of images for jumping
 	private String[] attack = new String[3]; // stores an array of images for attacking
 	private String[] hurt = new String[3]; // stores an array of images for being hurt
-	private boolean isFacingRight = true; // true if sprite is facing right
-	private int frame = 0; // stores the specific frame the game is on (refreshes every 600 frames)
+	protected boolean isFacingRight = true; // true if sprite is facing right
+	protected int frame = 0; // stores the specific frame the game is on (refreshes every 600 frames)
     
     private Rectangle me = new Rectangle(); // bounding rectangle of
                                             // this entity
     private Rectangle him = new Rectangle(); // bounding rect. of other
                                              // entities
-    
     // higher values result in slower FPS
     private int refreshRate = 500;
                                              
@@ -87,7 +88,6 @@
     		 attack[i] = "sprites/" + entityName + "/AT" + i + ".png";
     	 }
     	 
-    	 // configure all damaged images
     	 for (int i = 0; i < hurt.length; i++) {
     		 hurt[i]= "sprites/" + entityName + "/DMG" + i + ".png";
     	 }
@@ -109,23 +109,23 @@
     		 int index = (frame - refreshRate) / refreshRate;
     		 
              // update direction
-    		 if (this.pauseMovement) {
+    		 if (pauseMovement) {
     			 refreshRate = 50;
 				 sprite = (SpriteStore.get()).getSprite(hurt[index]);
 			 }
     		 else {
     			 refreshRate = 500;
-    			 if (this.attacking) {
+    			 if (attacking) {
     				 sprite = (SpriteStore.get()).getSprite(attack[0]);
     			 } 
     			 
     			 else if (dy < 0) {
         			 sprite = (SpriteStore.get()).getSprite(jump[index]);
         		 } else {
-        			 if (dx < 0 && !isTileRight()) {
+        			 if (dx < 0) {
             			 isFacingRight = false;
             			 sprite = (SpriteStore.get()).getSprite(moveLeft[index]);
-            		 } else if (dx > 0 && !isTileLeft()) {
+            		 } else if (dx > 0) {
             			 isFacingRight = true;
             			 sprite = (SpriteStore.get()).getSprite(moveRight[index]);
             		 } else {
@@ -137,6 +137,7 @@
 			 
     	 }
      }
+     
 
      public void setMap() {}
      /* move
@@ -145,33 +146,48 @@
       * purpose: after a certain amout of time has passed,
       *          update the location
       */
-     
      public void move(long delta) {
-    	 
-    	 // check if it'll hit a platform
     	 left = (int) x;
          right = left + sprite.getWidth();
          top = (int) y;
          bottom = top + sprite.getHeight();
-         if (dx < 0 && x < 0) {
-             dx = -dx;
-         } else if (dx > 0 && x > 950) {
-            dx = -dx;
-         } else if (dx < 0 && isTileLeft()) {
-             dx = -dx;
-         } else if (dx > 0 && isTileRight()) {
-             dx = -dx;
-         }
-         if (dy < 0 && isTileAbove()) {
+    	 if (!beingPushed) {
+	    	 // check if it'll hit a platform
+	         if (dx < 0 && x < 0) {
+	             dx = -dx;
+	         } else if (dx > 0 && x > 950) {
+	             dx = -dx;
+	         } else if (dx < 0 && isTileLeft(delta)) {
+	             dx = -dx;
+	         } else if (dx > 0 && isTileRight(delta)) {
+	             dx = -dx;
+	         }    
+	         
+    	 	} else {
+	    	if (pushedRight) {
+	    		x += delta * 100.0 / 1000;
+	    		if (x > pushTarget) {
+	    			beingPushed = false;
+	    		} // if
+	    	} else {
+	    		x -= delta * 100.0 / 1000;
+	    		if (x < pushTarget) {
+	    			beingPushed = false;
+	    		} // if
+	    	} // else
+	    } // else
+    	 
+    	 if (dy < 0 && isTileAbove(delta)) {
          	dy = 0;
          	game.stopJumping();
-         } else if (isTileBelow() && (!game.getJumping() || !(this instanceof LukeEntity))) {
+         } else if (isTileBelow(delta) && (!game.getJumping() || !(this instanceof LukeEntity))) {
              dy = 0;
          }
     	 
-       // update location of entity based ov move speeds
-       x += (delta * dx) / 1000;
-       y += (delta * dy) / 1000;
+    	 // update location of entity based on move speeds
+    	 // update location of entity based on move speeds
+         x += (delta * dx) / 1000;
+    	 y += (delta * dy) / 1000;
      } // move
 
      // get and set velocities
@@ -208,34 +224,40 @@
     	 return sprite.getWidth();
      }
      
-     protected boolean isTileAbove() {
-
-         // if entity's top-left or top-right corner is in a tile
-         return map.getTile(right / 96, (top - 1) / 96) != null || map.getTile(left / 96, (top - 1) / 96) != null;
+     public void pushBackTo(int target, boolean pushedRight) {
+    	 beingPushed = true;
+    	 pushTarget = target;
+    	 this.pushedRight = pushedRight;
      }
      
-     public boolean isTileBelow() {
+     protected boolean isTileAbove(long delta) {
+
+         // if entity's top-left or top-right corner is in a tile
+         return map.getTile (right / 96, (int) (top + (delta * dy) / 1000 - 1) / 96) != null || map.getTile(left / 96, (int) (top + (delta * dy) / 1000 - 1) / 96) != null;
+     }
+     
+     public boolean isTileBelow(long delta) {
      	
      	// if entity's bottom-left or bottom-right corner is in a tile
      	try {
-     		return map.getTile(right / 96, (bottom + 1) / 96) != null || map.getTile(left / 96, (bottom + 1) / 96) != null;
+     		return map.getTile(right / 96, (int) (bottom + (delta * dy) / 1000 + 1) / 96) != null || map.getTile(left / 96, (int) (bottom + (delta * dy) / 1000 + 1) / 96) != null;
      	} catch (Exception e) {
      		return false;
      	}
      	
      }
      
-     protected boolean isTileLeft() {
+     protected boolean isTileLeft(long delta) {
          
      	// if entity's top-left or bottom-left corner is in a tile
-         return map.getTile((left - 1) / 96, top / 96) != null || map.getTile((left - 1) / 96, bottom / 96) != null;
+         return map.getTile((int) (left + (delta * dx) / 1000 - 1) / 96, top / 96) != null || map.getTile((int) (left + (delta * dx) / 1000 - 1) / 96, bottom / 96) != null;
      }
      
-     protected boolean isTileRight() {
+     protected boolean isTileRight(long delta) {
          
      	// if entity's top-right or bottom-right corner is in a tile
      	try {
-     		return map.getTile((right + 1) / 96, top / 96) != null || map.getTile((right + 1) / 96, bottom / 96) != null;
+     		return map.getTile((int) (right + (delta * dx) / 1000 + 1) / 96, top / 96) != null || map.getTile((int) (right + (delta * dx) / 1000 + 1) / 96, bottom / 96) != null;
      	} catch (Exception e) {
      		return true;
      	}

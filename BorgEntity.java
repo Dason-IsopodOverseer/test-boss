@@ -1,46 +1,45 @@
 public class BorgEntity extends EnemyEntity {
-	private final int speed = 10;
+	private double moveSpeed = 35;
 	private boolean isQueen = false;
-	private int interval = 0;
-	private int count = 0;
+	private byte count = 0;
 	
     public BorgEntity(final Game g, final String r, final int newX, final int newY) {
         super(g, r, newX, newY, 50);
         
         if (r.equals("queen")) {
         	isQueen = true;
+        	
+        	// set queen attributes
+        	moveSpeed /= 2; // queen is slower than drones
         }
+        dx = moveSpeed;
     }
     
     public void move(long delta) {
     	super.move(delta);
-    	interval++;
-    	if (interval == 300) {
-    		interval = 0;
-   	 	}
     	
     	// check if this entity should turn around
-		if (isTileBelow() && !isTileCompletelyBelow()) {
+		if (isTileBelow(delta) && !isTileCompletelyBelow(delta)) {
 			dx = -dx;
 			x += (delta * dx) / 500;
 		} // if
 		
-		// configure additional movements depending on type of enemy
-		if (isQueen && interval == 0) {
+		// configure additional movements and attacks depending on type of enemy
+		if (isQueen && frame == 0) {
 			count++;
 			
 			// queen sometimes turns around randomly
-			int random = (int)(Math.random() * 100);
+			int random = (int)(Math.random() * 10);
 			if (random == 0) {
-				dx = -dx;
+				dx *= -1;
 			}
 			
-			// queen sometimes spawns a drone
-			if (count % 20 == 0) {
-				Entity b = new BorgEntity(game, "borg", this.getX() + 100, this.getY());
+			// queen spawns a drone periodically
+			if (count % 10 == 0) {
+				count = 0;
+				Entity b = new BorgEntity(game, "borg", this.getX(), this.getY());
 				game.entities.add(b);
 				b.setMap();
-				
 			}
 		}
     } // move
