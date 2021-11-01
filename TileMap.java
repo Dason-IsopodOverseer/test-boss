@@ -12,6 +12,8 @@ public class TileMap {
 	private int height = 0; // stores the height of the map
 	private int width = 0; // stores the width of the map
 	
+	private int tileSize = 50;
+	
 	public TileMap(String tileFile, Game g) {
 		
 		// read the txt tileFile and populate the empty tileConfig arraylist
@@ -39,7 +41,7 @@ public class TileMap {
 	// get width - tiles.length
 	// get height - tiles[0].length
 	public Sprite getTile(int x, int y) {
-			return tiles[x][y];
+		return tiles[x][y];
 	}
 	
 	public void setTile(int x, int y, Sprite tile) {
@@ -64,27 +66,24 @@ public class TileMap {
 					tiles[x][y] = n;
 				} else if (ch == 'k') {
 					tiles[x][y] = null;
-					game.entities.add(new KlingonEntity(game, "kling", (x * 96), (y * 96 + 75)));
+					game.entities.add(new KlingonEntity(game, "kling", (x * tileSize), (y * tileSize + 25)));
 				} else if (ch == 'w') {
 					tiles[x][y] = null;
-					game.entities.add(new KlingonEntity(game, "warrior", (x * 96), (y * 96 + 75)));
+					game.entities.add(new KlingonEntity(game, "warrior", (x * tileSize), (y * tileSize + 25)));
 				} else if (ch == 'm') {
 					tiles[x][y] = null;
-					game.entities.add(new KlingonEntity(game, "master", (x * 96), (y * 96 + 75)));
+					game.entities.add(new KlingonEntity(game, "master", (x * tileSize), (y * tileSize + 25)));
 				} else if (ch == 'b') {
 					tiles[x][y] = null;
-					game.entities.add(new BorgEntity(game, "borg", (x * 96), (y * 96 + 75)));
+					game.entities.add(new BorgEntity(game, "borg", (x * tileSize), (y * tileSize + 25)));
 				} else if (ch == 'q') {
 					tiles[x][y] = null;
-					game.entities.add(new BorgEntity(game, "queen", (x * 96), (y * 96 + 75)));
+					game.entities.add(new BorgEntity(game, "queen", (x * tileSize), (y * tileSize + 25)));
 				} 
 				else {
 					tiles[x][y] = null;
 				}
 	        }
-	    }
-	    for (int y = 0; y < height; y++) {
-	    	
 	    }
 		return tiles;
 	}
@@ -120,6 +119,11 @@ public class TileMap {
 		        
 		        // add every line except for comments
 		        if (!line.startsWith("#")) {
+		        	
+		        	// * makes an entire row empty
+		        	if (line.startsWith("*")) {
+		        		line = "                                "; // 32 spaces
+		        	}
 		            tileConfig.add(line);
 		            
 		            // set the width

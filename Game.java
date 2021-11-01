@@ -15,9 +15,11 @@ public class Game extends Canvas {
     private boolean attackPressed = false; // true if attack key (spacebar) currently pressed
     private boolean forcePressed = false; // true if force key (a) currently pressed
     
-    public final int GAMEWIDTH = 1056; // width in px of game window
-    public final int GAMEHEIGHT = 480; // height in px of game window
-    private int levelHeight = 1920; // height of the first "level" of the game
+    public final int GAMEWIDTH = 1600; // width of game window in px 
+    public final int GAMEHEIGHT = 900; // height of game window in px
+    private int levelHeight = 1800; // height of the first "level" of the game
+    
+    protected int tileSize = 50; // width and height of all tiles
     
     private double amountScrolled = 0; // constantly increases to make the platforms rise
     private double scrollSpeed = -2; // speed that amountScrolled increases at
@@ -61,28 +63,31 @@ public class Game extends Canvas {
 	 */
 	public Game() {
 		// create a frame to contain game
-		JFrame container = new JFrame("Title of page goes here");
+		JFrame container = new JFrame("Wrong Galaxy");
 
 		// get hold the content of the frame
 		JPanel panel = (JPanel) container.getContentPane();
 
 		// set up the resolution of the game
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		panel.setPreferredSize(new Dimension(GAMEWIDTH,GAMEHEIGHT));
 		panel.setLayout(null);
 
 		// set up canvas size (this) and add to frame
-		setBounds(0,0,GAMEWIDTH,GAMEHEIGHT);
+		setSize(screenSize);
 		panel.add(this);
 
 		// Tell AWT not to bother repainting canvas since that will
         // be done using graphics acceleration
 		setIgnoreRepaint(true);
-
+		
 		// make the window visible
 		container.pack();
 		container.setResizable(false);
 		container.setVisible(true);
-
+		
+		// make the game appear in the center of the screen
+		container.setLocation((int) (screenSize.getWidth()/2.0 - GAMEWIDTH/2.0), (int) (screenSize.getHeight()/2.0 - GAMEHEIGHT/1.8));
 
         // if user closes window, shutdown game and jre
 		container.addWindowListener(new WindowAdapter() {
@@ -155,7 +160,6 @@ public class Game extends Canvas {
             // entities movement
             long delta = System.currentTimeMillis() - lastLoopTime;
             lastLoopTime = System.currentTimeMillis();
-            System.out.println(delta);
             
             // get graphics context for the accelerated surface and make it black
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
@@ -197,19 +201,18 @@ public class Game extends Canvas {
 		        		
 		        	}
 	            }
-	        	
 	            
             } // if movement paused	        
             
             
             Sprite tile = null;
-            int topY = (int) amountScrolled / -96;
-            int bottomY = (GAMEHEIGHT / 96) + topY;
+            int topY = (int) amountScrolled / -tileSize;
+            int bottomY = (GAMEHEIGHT / tileSize) + topY;
     		for (int i = 0; i < map.getWidth(); i++) { 
     			for (int j = topY; j <= bottomY; j++) {
     				tile = map.getTile(i, j);
     				if (tile != null) {
-    					tile.draw(g, (i * 96), (int)(j * 96 + amountScrolled));
+    					tile.draw(g, (i * tileSize), (int)(j * tileSize + amountScrolled));
     				}
     			}
     		}
@@ -219,7 +222,7 @@ public class Game extends Canvas {
     		// update entity animations to account for movement
             for (int i = 0; i < entities.size(); i++) {
                 Entity entity = (Entity) entities.get(i);
-                entity.updateAnimations();
+                entity.updateAnimations(delta);
             } // for
 
             // draw entities
@@ -229,20 +232,21 @@ public class Game extends Canvas {
             }
             
             for (int i = 0; i < entities.size(); i++) {
-    	        if (entities.get(i).collidesWith(luke) && entities.get(i) != luke) {
+    	        if (luke.lightsaberHit(entities.get(i), facingRight) && entities.get(i) != luke) {
     	        	if (luke.attacking) {
     	        		deadEnemies.add(entities.get(i));
     	 				forceAttackInterval += 250;
     	        	}
-    	        	else {
-    	        		health--;
-    	        		hearts[health] = lostHeart;
-    	        		luke.collidedWith(entities.get(i));
-    	        		lastPause = System.currentTimeMillis();
-    	        		luke.pauseMovement = true;
-    	        				
-    	        	}
     	        }
+    	        
+    	        if (entities.get(i).collidesWith(luke) && entities.get(i) != luke) {
+	        		health--;
+	        		hearts[health] = lostHeart;
+	        		luke.collidedWith(entities.get(i));
+	        		lastPause = System.currentTimeMillis();
+	        		luke.pauseMovement = true;
+	        				
+	        	}
     	    }
             
             if (System.currentTimeMillis() - lastPause > PAUSEDURATION) {
@@ -295,10 +299,10 @@ public class Game extends Canvas {
         	// Handle input
  			if (rightPressed && !leftPressed) {
  				luke.setHorizontalMovement(moveSpeed);
- 				//facingRight = true;
+ 				facingRight = true;
  			} else if (leftPressed) {
  				luke.setHorizontalMovement(-moveSpeed);
- 				//facingRight = false;
+ 				facingRight = false;
  			} if (upPressed && luke.isTileBelow(delta)) {
  				luke.setVerticalMovement(-600);
  				jumpTarget = luke.getY() - 200;
@@ -422,8 +426,6 @@ public class Game extends Canvas {
 	            // clear graphics and flip buffer
             g.dispose();
             strategy.show();
-            
-
         } // while
 		                
         // reset to start of level
@@ -436,14 +438,14 @@ public class Game extends Canvas {
 	private void loadLvlMap() {
 		if (lvl == 1) {
 			map = new TileMap("level1.txt", this);
-			levelHeight = map.getHeight() * 96;
+			levelHeight = map.getHeight() * tileSize;
 			for (int i = 0; i < entities.size(); i++) {
 				entities.get(i).setMap();
 			}
 		}
 		else if (lvl == 2) {
 			map = new TileMap("level2.txt", this);
-			levelHeight = map.getHeight() * 96;
+			levelHeight = map.getHeight() * tileSize;
 			for (int i = 0; i < entities.size(); i++) {
 				entities.get(i).setMap();
 			}

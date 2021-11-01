@@ -1,50 +1,70 @@
 public class KlingonEntity extends EnemyEntity {
-	private double moveSpeed = 50;
     private String type = "";
     private byte count = 0;
+    private boolean jumping = false;
+    private int jumpCount = 0;
 	
     public KlingonEntity(final Game g, final String r, final int newX, final int newY) {
         super(g, r, newX, newY, 50);
-       
         type = r;
-        if (!type.equals("kling")) {
-        	// warriors and masters are very fast
-        	moveSpeed *= 1.5;
-        }
+        dx = 50;
         
-        dx = moveSpeed;
+        // set health
+        // warriors and masters do not move until player comes near
+        if (type.equals("warrior")) {
+        	health = 2;
+        	dx = 0;
+        } else if (type.equals("master")) {
+        	health = 3;
+        	dx = 0;
+        }
     }
     
     public void move(long delta) {
-    	if (frame % 5 == 0) {
+    	
+    	// counter increments every 50 frames
+    	if (frame % 50 == 0) {
     		count++;
     	}
     	if (count > 100) {
     		count = 0;
     	}
     	
-    	if (type.equals("kling")) {
-    		super.move(delta);
-    		if (count == 0) {
-    			
-    		}
-    	} else if (game.luke.getY() + 100 >= y) {
-    		
-    		// warriors and dahar masters chase after player
-    		if (game.luke.getX() < x) {
-    			dx = -Math.abs(dx);
-    		} else {
-    			dx = Math.abs(dx);
-    		}
-    		super.move(delta);
-    		
-    		if (type.equals("warrior") && frame % 2 == 0) {
-    			
-    			// configure additional movements depending on type of enemy
-        	} else if (type.equals("warrior") && frame % 2 == 0) {
-        		
-        	}
+    	// counts time elapsed after jumping
+    	if (jumping = true) {
+    		jumpCount++;
     	}
+
+    	if (jumpCount > 500) {
+    		dy = fallingSpeed;
+    		jumping = false;
+    		jumpCount = 0;
+    	}
+    	
+    	/*
+    	if (type.equals("kling")) {
+    	} else  if (type.equals("warrior")) {
+        } else if (type.equals("master")) {
+        }
+        */
+    	
+    	/* warriors and dahar masters chase after player
+    	 * this checks to see if luke is within the enemy's sight
+    	 */
+    	if (game.luke.getY() + 200 >= y && type != "kling") {
+    		dx = 100;
+    		
+    		if (game.luke.getX() < x) {
+    			dx *= -1;
+    		}
+    		
+    		// configure additional movements depending on type of enemy
+    		if (type.equals("master") && count == 100) {
+        		dy = -400;
+        		jumping = true;
+        	}
+    	} 
+    	super.move(delta);
     } // move
     
     public void collidedWith(final Entity other) {

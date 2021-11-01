@@ -20,8 +20,8 @@ public class LukeEntity extends Entity
     				x = 1;
     			}
     			// if luke would hit a tile to the left
-    			else if (map.getTile(((int) x - 51) / 96, bottom / 96) != null) {
-    				x = ((int) (x - 50) / 96 * 96) + 96;
+    			else if (map.getTile(((int) x - 51) / tileSize, bottom / tileSize) != null) {
+    				x = ((int) (x - 50) / tileSize * tileSize) + tileSize;
     			}
     			else {
     				x = x - 50;
@@ -30,12 +30,12 @@ public class LukeEntity extends Entity
     		// if luke is on the enemy's right
     		else {
     			// if luke would hit right edge
-    			if (other.x + other.getWidth() + 51 > 960 - this.getWidth() - 1) {
-    				x = 960 - this.getWidth() - 1;
+    			if (other.x + other.getWidth() + 51 > (tileSize * mapWidth - 10) - this.getWidth() - 1) {
+    				x = (tileSize * mapWidth - 10) - this.getWidth() - 1;
     			}
     			// if luke would hit a tile
-    			else if (map.getTile(((int) other.x + other.getWidth() + 51) / 96, bottom / 96) != null) {
-    				x = (int) (other.x + other.getWidth() + 50) / 96 * 96;
+    			else if (map.getTile(((int) other.x + other.getWidth() + 51) / tileSize, bottom / tileSize) != null) {
+    				x = (int) (other.x + other.getWidth() + 50) / tileSize * tileSize;
     			}
     			else {
     				x = other.x + other.getWidth() + 50;
@@ -48,13 +48,12 @@ public class LukeEntity extends Entity
     
     protected char getTileDirectlyBelow() {
     	String s = "test";
-    	if (map.getTile(right / 96, (bottom + 1) / 96) != null && map.getTile(left / 96, (bottom + 1) / 96) != null) {
-    		if (map.getTile(right / 96, (bottom + 1) / 96) == map.getTile(left / 96, (bottom + 1) / 96)) {
-    			s = map.tileConfig.get((bottom + 1) / 96);
-	    		return s.charAt(right / 96);
+    	if (map.getTile(right / tileSize, (bottom + 1) / tileSize) != null && map.getTile(left / tileSize, (bottom + 1) / tileSize) != null) {
+    		if (map.getTile(right / tileSize, (bottom + 1) / tileSize) == map.getTile(left / tileSize, (bottom + 1) / tileSize)) {
+    			s = map.tileConfig.get((bottom + 1) / tileSize);
+	    		return s.charAt(right / tileSize);
     		}
     	}
     	return 'x';
     }
-   
 }

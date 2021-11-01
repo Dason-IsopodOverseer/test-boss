@@ -1,15 +1,15 @@
 public class BorgEntity extends EnemyEntity {
-	private double moveSpeed = 35;
 	private boolean isQueen = false;
 	private byte count = 0;
 	
     public BorgEntity(final Game g, final String r, final int newX, final int newY) {
         super(g, r, newX, newY, 50);
+        moveSpeed = 35;
         
+     	// set queen attributes
         if (r.equals("queen")) {
         	isQueen = true;
-        	
-        	// set queen attributes
+        	health = 3;
         	moveSpeed /= 2; // queen is slower than drones
         }
         dx = moveSpeed;

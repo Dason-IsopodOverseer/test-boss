@@ -1,29 +1,45 @@
 # Map file for tile-based game
 # (Lines that start with '#' are comments)
-# The tiles are:
+# (Lines that start with '*' are filled with spaces)
 # (Space) Empty tile
 # A..Z Tiles A through Z
 # b = borg enemy
 # k = klingon enemy
 # WHEN WRITING NEW LEVELS, DO NOT USE TAB FOR SPACES!
 # MAKE SURE NO ROGUE SPACES, OR ELSE GAME BREAKS!!!
-     AAAAA 
-       BBB 
-           
-AA A q   b 
-BB BBBBBBBB
-        mkw
-AAA AAAAAAA
-BBB   BB BB
-BBB B  AA  
-A k       A
-BBBBBBB  AB
-BBBAABB  AB
-BBAAAAA  AB
-BBBBBBB  AB
-AAAAAA   AB
-BBBBBB   BB
-BBBBBB  AAB
-A         B
-BBB AA  A B
-AAAAAAANAAB
+*
+*
+AAA  AAAAAAAAAAAAAAAA  AAAAAAABA
+AAA  BBBBBBBBBBBBBAAA  BBBBBBBAB
+*
+*
+B            q              m   
+BBBBBBBBBBBBBBBBB AAA  BBBBBBBAB
+*
+B                               
+AAAAAAAAAA  AAAAAAAAA BBBBBBBBB 
+BBBBBBBBBB        AAABBBBBBBBBBB
+AAAAAAAAAAAAA     AAA  BBBBBBBBB
+BBBBBBBBBBBBBBBBB AAA  BBBBBBBBB
+*
+*
+            b                   
+AAAAAAAAAAAAAAAA A             A
+*
+*
+AAA  AAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAA  BBBBBBBBBBBBBBBBBBBBBBBBBBB
+*
+*
+B            b                  
+BBBBBBBBBBBBBBBBB BBBBBBBBBBBBBB
+*
+B                               
+AAAAAAAAAA  AAAAAA AAAAAAAAAAAAA
+BBBBBBBBBB                      
+AAAAAAAAAAAAA     AAAAAAAA   AAA
+BBBBBBBBBBBBBBBBB AAAAAAAAA AAAA
+*
+*
+            b                   
+AAAAAAAAAAAAAAAANAAAAAAAAAAAAAAA

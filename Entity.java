@@ -27,6 +27,9 @@
     protected int pushTarget = 0;
     protected boolean pushedRight = false;
     
+    protected int tileSize = 50;
+    protected int mapWidth = 32;
+    
     public boolean pauseMovement = false;
     public boolean attacking = false;
 
@@ -45,7 +48,7 @@
     private Rectangle him = new Rectangle(); // bounding rect. of other
                                              // entities
     // higher values result in slower FPS
-    private int refreshRate = 500;
+    private int refreshRate = 200;
                                              
     /* Constructor
      * input: reference to the image for this entity,
@@ -100,7 +103,7 @@
       * changes the sprite to match the given animation.
       * 
       */
-     public void updateAnimations() {
+     public void updateAnimations(long delta) {
     	 frame++;
     	 if (frame > (moveRight.length) * refreshRate) {
     		 frame = 0;
@@ -114,7 +117,7 @@
 				 sprite = (SpriteStore.get()).getSprite(hurt[index]);
 			 }
     		 else {
-    			 refreshRate = 500;
+    			 refreshRate = 200;
     			 if (attacking) {
     				 sprite = (SpriteStore.get()).getSprite(attack[0]);
     			 } 
@@ -122,10 +125,10 @@
     			 else if (dy < 0) {
         			 sprite = (SpriteStore.get()).getSprite(jump[index]);
         		 } else {
-        			 if (dx < 0) {
+        			 if (dx < 0 && !isTileRight(delta)) {
             			 isFacingRight = false;
             			 sprite = (SpriteStore.get()).getSprite(moveLeft[index]);
-            		 } else if (dx > 0) {
+            		 } else if (dx > 0 && !isTileLeft(delta)) {
             			 isFacingRight = true;
             			 sprite = (SpriteStore.get()).getSprite(moveRight[index]);
             		 } else {
@@ -137,7 +140,6 @@
 			 
     	 }
      }
-     
 
      public void setMap() {}
      /* move
@@ -155,7 +157,7 @@
 	    	 // check if it'll hit a platform
 	         if (dx < 0 && x < 0) {
 	             dx = -dx;
-	         } else if (dx > 0 && x > 950) {
+	         } else if (dx > 0 && x > tileSize * mapWidth - 10) {
 	             dx = -dx;
 	         } else if (dx < 0 && isTileLeft(delta)) {
 	             dx = -dx;
@@ -233,14 +235,14 @@
      protected boolean isTileAbove(long delta) {
 
          // if entity's top-left or top-right corner is in a tile
-         return map.getTile (right / 96, (int) (top + (delta * dy) / 1000 - 1) / 96) != null || map.getTile(left / 96, (int) (top + (delta * dy) / 1000 - 1) / 96) != null;
+         return map.getTile (right / tileSize, (int) (top + (delta * dy) / 1000 - 1) / tileSize) != null || map.getTile(left / tileSize, (int) (top + (delta * dy) / 1000 - 1) / tileSize) != null;
      }
      
      public boolean isTileBelow(long delta) {
      	
      	// if entity's bottom-left or bottom-right corner is in a tile
      	try {
-     		return map.getTile(right / 96, (int) (bottom + (delta * dy) / 1000 + 1) / 96) != null || map.getTile(left / 96, (int) (bottom + (delta * dy) / 1000 + 1) / 96) != null;
+     		return map.getTile(right / tileSize, (int) (bottom + (delta * dy) / 1000 + 1) / tileSize) != null || map.getTile(left / tileSize, (int) (bottom + (delta * dy) / 1000 + 1) / tileSize) != null;
      	} catch (Exception e) {
      		return false;
      	}
@@ -250,14 +252,14 @@
      protected boolean isTileLeft(long delta) {
          
      	// if entity's top-left or bottom-left corner is in a tile
-         return map.getTile((int) (left + (delta * dx) / 1000 - 1) / 96, top / 96) != null || map.getTile((int) (left + (delta * dx) / 1000 - 1) / 96, bottom / 96) != null;
+         return map.getTile((int) (left + (delta * dx) / 1000 - 1) / tileSize, top / tileSize) != null || map.getTile((int) (left + (delta * dx) / 1000 - 1) / tileSize, bottom / tileSize) != null;
      }
      
      protected boolean isTileRight(long delta) {
          
      	// if entity's top-right or bottom-right corner is in a tile
      	try {
-     		return map.getTile((int) (right + (delta * dx) / 1000 + 1) / 96, top / 96) != null || map.getTile((int) (right + (delta * dx) / 1000 + 1) / 96, bottom / 96) != null;
+     		return map.getTile((int) (right + (delta * dx) / 1000 + 1) / tileSize, top / tileSize) != null || map.getTile((int) (right + (delta * dx) / 1000 + 1) / tileSize, bottom / tileSize) != null;
      	} catch (Exception e) {
      		return true;
      	}
@@ -287,6 +289,26 @@
                      other.sprite.getWidth(), other.sprite.getHeight());
        return me.intersects(him);
      } // collidesWith
+     
+     /*
+      * check if luke's lightsaber makes contact with enemy. Exclusive to luke entity
+      */
+     public boolean lightsaberHit(Entity other, boolean isFacingRight) {
+     	boolean hit = false;
+     	if (bottom + 5 > other.bottom && top - 5 < other.top) {
+     		if (isFacingRight) {
+         		if (other.left <= right + 30 && other.left > left + 10) {
+         			hit = true;
+         		}
+         	} else {
+         		if (other.right >= left - 30 && other.right < left - 10) {
+         			hit = true;
+         		}
+         	}
+     	}
+     	return hit;
+     }
+     
      
      /* collidedWith
       * input: the entity with which this has collided
