@@ -1,17 +1,17 @@
      AAAAAAAAAAAAAAAAAAAAAAAAAAA
        BBBA            b        
-BBB    AAAA           AAA       
+BBB    AAAA           CCC       
 AABBB     A     b               
      B   BA    AAA           b  
 A         A                 AAA 
 AAB   AAAAA                     
 BBBA  BB BA      b b            
-BBB B  AA A    AAAAAAA          
+BBB B  AA A    CCCCCCC          
 A         A                     
 BBBBBBB  AA                     
           A                     
 B   BBBBAAA                b    
-BB       AA              AAAAA  
+BB       AA              CCCCC  
 AAAAAA   AA                     
 BB      ABA                     
 BBB BBAAAAAAAAAAAAAABAABABAAAABB

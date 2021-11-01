@@ -5,9 +5,7 @@ public class TileMap {
 
 	private Sprite[][] tiles;
 	public ArrayList<String> tileConfig = new ArrayList(); // stores the configuration of different tiles after being read by mapReader
-	private Sprite a;
-	private Sprite b;
-	private Sprite n;
+	private Sprite a, b, c, d, e, f, g, n;
 	private Game game;
 	private int height = 0; // stores the height of the map
 	private int width = 0; // stores the width of the map
@@ -26,6 +24,7 @@ public class TileMap {
 		// set sprites a and b to corresponding tile images
 		a = (SpriteStore.get()).getSprite("sprites/a.png");
 		b = (SpriteStore.get()).getSprite("sprites/b.png");
+		c = (SpriteStore.get()).getSprite("sprites/c.png");
 		n = (SpriteStore.get()).getSprite("sprites/n.gif");
 		fillMap();
 	}
@@ -62,6 +61,8 @@ public class TileMap {
 					tiles[x][y] = a;
 				} else if (ch == 'B') {
 					tiles[x][y] = b;
+				} else if (ch == 'C') {
+					tiles[x][y] = c;
 				} else if (ch == 'N') {
 					tiles[x][y] = n;
 				} else if (ch == 'k') {

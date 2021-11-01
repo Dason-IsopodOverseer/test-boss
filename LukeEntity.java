@@ -13,6 +13,7 @@ public class LukeEntity extends Entity
     
     public void collidedWith(final Entity other) {
     	if (other instanceof EnemyEntity ) {
+    		other.setHorizontalMovement(-other.getHorizontalMovement());
     		// if luke is on the enemy's left
     		if (x + (this.getWidth() / 2) < other.x + (other.getWidth() / 2)) {
     			// if luke would hit left edge
@@ -20,7 +21,7 @@ public class LukeEntity extends Entity
     				x = 1;
     			}
     			// if luke would hit a tile to the left
-    			else if (map.getTile(((int) x - 51) / tileSize, bottom / tileSize) != null) {
+    			else if (map.getTile(((int) x - 51) / tileSize, bottom / tileSize) != null || map.getTile(((int) x - 51) / tileSize, top / tileSize) != null) {
     				x = ((int) (x - 50) / tileSize * tileSize) + tileSize;
     			}
     			else {
@@ -34,7 +35,7 @@ public class LukeEntity extends Entity
     				x = (tileSize * mapWidth - 10) - this.getWidth() - 1;
     			}
     			// if luke would hit a tile
-    			else if (map.getTile(((int) other.x + other.getWidth() + 51) / tileSize, bottom / tileSize) != null) {
+    			else if (map.getTile(((int) other.x + other.getWidth() + 51) / tileSize, bottom / tileSize) != null || map.getTile(((int) this.x + this.getWidth() + 51) / tileSize, top / tileSize) != null) {
     				x = (int) (other.x + other.getWidth() + 50) / tileSize * tileSize;
     			}
     			else {

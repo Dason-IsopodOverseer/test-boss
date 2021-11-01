@@ -153,6 +153,7 @@
          right = left + sprite.getWidth();
          top = (int) y;
          bottom = top + sprite.getHeight();
+         boolean moveNormally = true;
     	 if (!beingPushed) {
 	    	 // check if it'll hit a platform
 	         if (dx < 0 && x < 0) {
@@ -160,22 +161,26 @@
 	         } else if (dx > 0 && x > tileSize * mapWidth - 10) {
 	             dx = -dx;
 	         } else if (dx < 0 && isTileLeft(delta)) {
+	        	 x = ((int) (left + (delta * dx) / 1000 - 1) / tileSize) * tileSize + (tileSize + 1);
 	             dx = -dx;
+	             //moveNormally = false;
 	         } else if (dx > 0 && isTileRight(delta)) {
+	        	 x = ((int) (right + (delta * dx) / 1000 + 1) / tileSize) * tileSize - sprite.getWidth() - 1;
 	             dx = -dx;
+	             //moveNormally = false;
 	         }    
 	         
     	 	} else {
-	    	if (pushedRight) {
-	    		x += delta * 100.0 / 1000;
-	    		if (x > pushTarget) {
-	    			beingPushed = false;
-	    		} // if
-	    	} else {
-	    		x -= delta * 100.0 / 1000;
-	    		if (x < pushTarget) {
-	    			beingPushed = false;
-	    		} // if
+		    	if (pushedRight) {
+		    		x += delta * 100.0 / 1000;
+		    		if (x > pushTarget) {
+		    			beingPushed = false;
+		    		} // if
+		    	} else {
+		    		x -= delta * 100.0 / 1000;
+		    		if (x < pushTarget) {
+		    			beingPushed = false;
+		    	} // if
 	    	} // else
 	    } // else
     	 
@@ -183,13 +188,17 @@
          	dy = 0;
          	game.stopJumping();
          } else if (isTileBelow(delta) && (!game.getJumping() || !(this instanceof LukeEntity))) {
+        	 y = ((int) (bottom + (delta * dy) / 1000 + 1) / tileSize) * tileSize - sprite.getHeight() - 1;
              dy = 0;
+             //moveNormally = false;
          }
     	 
     	 // update location of entity based on move speeds
     	 // update location of entity based on move speeds
-         x += (delta * dx) / 1000;
-    	 y += (delta * dy) / 1000;
+    	 if (moveNormally) {
+    		 x += (delta * dx) / 1000;
+    		 y += (delta * dy) / 1000;
+    	 }
      } // move
 
      // get and set velocities

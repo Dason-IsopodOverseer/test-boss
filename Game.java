@@ -1,10 +1,9 @@
-
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.util.ArrayList;
+import java.awt.AlphaComposite;
 
 public class Game extends Canvas {
 	private BufferStrategy strategy;   // take advantage of accelerated graphics
@@ -22,11 +21,11 @@ public class Game extends Canvas {
     protected int tileSize = 50; // width and height of all tiles
     
     private double amountScrolled = 0; // constantly increases to make the platforms rise
-    private double scrollSpeed = -2; // speed that amountScrolled increases at
+    private double scrollSpeed = -20; // speed that amountScrolled increases at
     private boolean superScroll = false; // when luke is in the bottom 2/10 of the screen, scroll faster
     private boolean scrolling = true;
     
-    private int lvl = 1;
+    private int lvl = 1; // current level
     private final int ATTACKINTERVAL = 700;
     private final int ATTACKDURATION = 300;
     private final int PAUSEDURATION = 300;
@@ -128,7 +127,7 @@ public class Game extends Canvas {
 	
 	public void introScreenLoop() {
         while(!gameStarted) {
-                // get graphics context for the accelerated surface and make it black
+            // get graphics context for the accelerated surface and make it black
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
             g.setColor(new Color(0,0,0));
             g.fillRect(0,0,GAMEWIDTH,GAMEHEIGHT);
@@ -146,8 +145,12 @@ public class Game extends Canvas {
             g.dispose();
             strategy.show();
         } // while
-} // introScreenLoop
+	} // introScreenLoop
 	
+	public void setBackground(Graphics g, int imageNum) {
+		Sprite img = (SpriteStore.get()).getSprite("backgrounds/" + imageNum + ".jpg");
+		img.draw(g, 0, 0);
+	}
 	
 	public void gameLoop() {
 		
@@ -163,10 +166,9 @@ public class Game extends Canvas {
             
             // get graphics context for the accelerated surface and make it black
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
-            g.setColor(new Color(0,0,0));
             g.fillRect(0,0,GAMEWIDTH,GAMEHEIGHT);
+            setBackground(g, lvl);
             
-		
             // remove dead entities
             entities.removeAll(deadEnemies);
 
@@ -177,9 +179,13 @@ public class Game extends Canvas {
 	                entity.move(delta);
 	            } // for
 	           
+	            
+	            if ((levelHeight - GAMEHEIGHT) + amountScrolled < 10) {
+	        		scrolling = false;
+	        	}
 	            // check superScroll
-	            if ((luke.getY() + amountScrolled > (GAMEHEIGHT * 0.8) && scrollSpeed != 0)) {
-	            	// if luke is in the bottom 2/10 of the screen
+	            else if ((luke.getY() + amountScrolled > (GAMEHEIGHT * 0.7) && scrollSpeed != 0)) {
+	            	// if luke is in the bottom 3/10 of the screen
 	            	superScroll = true;
 	
 	            } else if (luke.getY() + amountScrolled < (GAMEHEIGHT * 0.2)) {
@@ -194,17 +200,13 @@ public class Game extends Canvas {
 		            } else {
 		            	amountScrolled += (scrollSpeed * delta) / 1000;
 		            } // else
-		            
-		           
-		            if ((levelHeight - GAMEHEIGHT) + amountScrolled < 1) {
-		        		scrolling = false;
-		        		
-		        	}
 	            }
 	            
             } // if movement paused	        
             
+            drawMap(g);
             
+            /*
             Sprite tile = null;
             int topY = (int) amountScrolled / -tileSize;
             int bottomY = (GAMEHEIGHT / tileSize) + topY;
@@ -216,8 +218,7 @@ public class Game extends Canvas {
     				}
     			}
     		}
-    		
-            
+    		*/
             
     		// update entity animations to account for movement
             for (int i = 0; i < entities.size(); i++) {
@@ -359,6 +360,7 @@ public class Game extends Canvas {
 	} // gameLoop
 	
 	private void goToNextLevel() {
+		    gameStarted = false;
 			entities.clear();
 		    health = 3;
 		    hearts[0] = heart;
@@ -367,10 +369,9 @@ public class Game extends Canvas {
 			
             // get graphics context for the accelerated surface and make it black
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
-            g.setColor(new Color(0,0,0));
             g.fillRect(0,0,GAMEWIDTH,GAMEHEIGHT);
             
-            loadLvlMap();
+            loadLvlMap(g);
             entities.add(luke);
             
             for (int i = 1; i <= 3; i++) {
@@ -382,6 +383,7 @@ public class Game extends Canvas {
             
             luke.x = 10;
             luke.y = 10;
+            drawMap(g);
             
             luke.attacking = false;
             luke.pauseMovement = false;
@@ -435,7 +437,60 @@ public class Game extends Canvas {
         
 	} // lose
 	
-	private void loadLvlMap() {
+	public void levelTransition(Graphics2D g) {
+		//long t = System.currentTimeMillis();
+		g.setColor(new Color(0, 0, 0));
+		g.fillRect(0, 0, GAMEWIDTH, GAMEHEIGHT);
+		g.setColor(new Color(100,100,175));
+        g.setFont(new Font(Font.SERIF,Font.PLAIN, 50));
+        g.drawString("LEVEL " + lvl, GAMEWIDTH / 2 - 110, 60);
+        
+        //g.dispose();
+        strategy.show();
+        
+        try {
+        	Thread.sleep(750);
+        } catch (Exception e) {
+        	System.out.println("whoops");
+        }
+        
+		for (float alpha = 0.0f; alpha <= 1.0f; alpha += 0.01f) {
+			
+			g.setColor(new Color(0, 0, 0));
+			g.fillRect(0, 0, GAMEWIDTH, GAMEHEIGHT);
+			g.setColor(new Color(100,100,175));
+	        g.setFont(new Font(Font.SERIF,Font.PLAIN, 50));
+	        g.drawString("LEVEL " + lvl, GAMEWIDTH / 2 - 110, 60);
+	        
+	        try {
+	        	Thread.sleep(10);
+	        } catch (Exception e) {
+	        	System.out.println("oops");
+	        }
+	        
+
+	        g.setColor(new Color(0,0,0));
+	        g.fillRect(0,0,GAMEWIDTH,GAMEHEIGHT);
+	        
+	        drawMap(g, alpha);
+	        
+	        strategy.show();
+	        
+	        if (gameStarted) {
+	        	break;
+	        }
+	        
+	        //if (alpha > 0.05f) {
+	        	//alpha += 0.05f;
+	        //}
+	        
+		}
+		g.dispose();
+		gameStarted = true;
+	
+	}
+	
+	private void loadLvlMap(Graphics g) {
 		if (lvl == 1) {
 			map = new TileMap("level1.txt", this);
 			levelHeight = map.getHeight() * tileSize;
@@ -452,6 +507,43 @@ public class Game extends Canvas {
 		}
 		else if (lvl == 3) {
 			
+		}
+	}
+	
+	private void drawMap(Graphics g) {
+		Sprite tile = null;
+        int topY = (int) amountScrolled / -tileSize;
+        int bottomY = (GAMEHEIGHT / tileSize) + topY;
+        if (bottomY > map.getHeight() - 1) {
+        	bottomY = map.getHeight() - 1;
+        }
+        for (int i = 0; i < map.getWidth(); i++) { 
+			for (int j = topY; j <= bottomY; j++) {
+				tile = map.getTile(i, j);
+				if (tile != null) {
+					tile.draw(g, (i * tileSize), (int)(j * tileSize + amountScrolled));
+				}
+			}
+		}
+	}
+	
+	private void drawMap(Graphics2D g, float alpha) {
+		Sprite tile = null;
+        int topY = (int) amountScrolled / -tileSize;
+        int bottomY = (GAMEHEIGHT / tileSize) + topY;
+        if (bottomY > map.getHeight() - 1) {
+        	bottomY = map.getHeight() - 1;
+        }
+        
+        
+        for (int i = 0; i < map.getWidth(); i++) { 
+			for (int j = topY; j <= bottomY; j++) {
+				tile = map.getTile(i, j);
+				if (tile != null) {
+			        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+					tile.draw(g, (i * tileSize), (int)(j * tileSize + amountScrolled));
+				}
+			}
 		}
 	}
 	
