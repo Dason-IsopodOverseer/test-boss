@@ -132,7 +132,7 @@
             			 isFacingRight = true;
             			 sprite = (SpriteStore.get()).getSprite(moveRight[index]);
             		 } else {
-            			 String idle =  isFacingRight ? moveRight[0] : moveLeft[0];
+            			 String idle =  isFacingRight ? moveRight[1] : moveLeft[1];
             			 sprite = (SpriteStore.get()).getSprite(idle);
             		 }
         		 } // elseS
