@@ -506,7 +506,11 @@ public class Game extends Canvas {
 			}
 		}
 		else if (lvl == 3) {
-			
+			map = new TileMap("level3.txt", this);
+			levelHeight = map.getHeight() * tileSize;
+			for (int i = 0; i < entities.size(); i++) {
+				entities.get(i).setMap();
+			}
 		}
 	}
 	

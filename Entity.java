@@ -35,10 +35,9 @@
 
     // the following variables control animations for this entity
     private boolean animated = false;
-	private String[] moveLeft = new String[3]; // stores an array of images for moving left
-	private String[] moveRight = new String[3]; // stores an array of images for moving right
-	private String[] jump = new String[3]; // stores an array of images for jumping
-	private String[] attack = new String[3]; // stores an array of images for attacking
+	private String[] moveLeft = new String[4]; // stores an array of images for moving left
+	private String[] moveRight = new String[4]; // stores an array of images for moving right
+	private String[] attack = new String[1]; // stores an array of images for attacking
 	private String[] hurt = new String[3]; // stores an array of images for being hurt
 	protected boolean isFacingRight = true; // true if sprite is facing right
 	protected int frame = 0; // stores the specific frame the game is on (refreshes every 600 frames)
@@ -48,7 +47,7 @@
     private Rectangle him = new Rectangle(); // bounding rect. of other
                                              // entities
     // higher values result in slower FPS
-    private int refreshRate = 200;
+    private int refreshRate = 100;
                                              
     /* Constructor
      * input: reference to the image for this entity,
@@ -81,11 +80,6 @@
     		 moveRight[i] = "sprites/" + entityName + "/R" + i + ".png";
     	 }
     	 
-    	// configure all moveUp images
-    	 for (int i = 0; i < jump.length; i++) {
-    		 jump[i] = "sprites/" + entityName + "/U" + i + ".png";
-    	 }
-    	 
     	 // configure all attack images
     	 for (int i = 0; i < attack.length; i++) {
     		 attack[i] = "sprites/" + entityName + "/AT" + i + ".png";
@@ -115,31 +109,33 @@
     		 if (pauseMovement) {
     			 refreshRate = 50;
 				 sprite = (SpriteStore.get()).getSprite(hurt[index]);
-			 }
-    		 else {
+			 } else {
     			 refreshRate = 200;
+    			 
+    			 // determine state (attacking or not)
     			 if (attacking) {
     				 sprite = (SpriteStore.get()).getSprite(attack[0]);
-    			 } 
-    			 
-    			 else if (dy < 0) {
-        			 sprite = (SpriteStore.get()).getSprite(jump[index]);
-        		 } else {
-        			 if (dx < 0 && !isTileRight(delta)) {
+    			 } else {
+    				 String idle =  isFacingRight ? moveRight[1] : moveLeft[1];
+    				 
+    				 // if luke is jumping, configure animations to match
+    				 if (dy < 0 && !isTileBelow(delta)) {
+    					 idle =  isFacingRight ? moveRight[0] : moveLeft[0];
+    					 index = 0;
+    				 }
+    				 if (dx < 0) {
             			 isFacingRight = false;
             			 sprite = (SpriteStore.get()).getSprite(moveLeft[index]);
-            		 } else if (dx > 0 && !isTileLeft(delta)) {
+            		 } else if (dx > 0) {
             			 isFacingRight = true;
             			 sprite = (SpriteStore.get()).getSprite(moveRight[index]);
             		 } else {
-            			 String idle =  isFacingRight ? moveRight[1] : moveLeft[1];
             			 sprite = (SpriteStore.get()).getSprite(idle);
             		 }
-        		 } // elseS
-    		 }
-			 
-    	 }
-     }
+	    		 } // determine state if else
+	    	 } // update direction if else
+	     } // if
+     } // updateAnimations
 
      public void setMap() {}
      /* move

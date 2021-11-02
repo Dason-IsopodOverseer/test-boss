@@ -1,20 +1,20 @@
      AAAAAAAAAAAAAAAAAAAAAAAAAAA
-       BBBA            b        
-BBB    AAAA           CCC       
+       BBBA                     
+BBB    AAAA                     
 AABBB     A     b               
-     B   BA    AAA           b  
+         BA    AAA           b  
 A         A                 AAA 
 AAB   AAAAA                     
 BBBA  BB BA      b b            
-BBB B  AA A    CCCCCCC          
+BBB B     A    CCCCCCC          
 A         A                     
 BBBBBBB  AA                     
           A                     
-B   BBBBAAA                b    
-BB       AA              CCCCC  
-AAAAAA   AA                     
-BB      ABA                     
-BBB BBAAAAAAAAAAAAAABAABABAAAABB
-A         AAAAAABbBAAABbBAAABbBA
-BBB AA  AAAAAAAAAAAAAAAAAAABAAAA
+B       AAA                b    
+B        AA              CCCCC  
+A        AA                     
+BB       BA                     
+BB   BAAAAAAAAAAAAAABAABABAAAABB
+A         AAAAAAB BAAAB BAAAB BA
+BBB     AAAAAAAAAbAAAAAbAAABAbAA
 AAAAAAANAAAAAAAAAAAAAAAAAAAAAAAA
